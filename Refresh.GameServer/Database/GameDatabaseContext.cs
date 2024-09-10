@@ -37,6 +37,7 @@ public partial class GameDatabaseContext : RealmDatabaseContext
     private RealmDbSet<LevelCommentRelation> LevelCommentRelations => new(this._realm);
     private RealmDbSet<FavouriteLevelRelation> FavouriteLevelRelations => new(this._realm);
     private RealmDbSet<QueueLevelRelation> QueueLevelRelations => new(this._realm);
+    private RealmDbSet<BlockUserRelation> BlockUserRelations => new(this._realm);
     private RealmDbSet<FavouriteUserRelation> FavouriteUserRelations => new(this._realm);
     private RealmDbSet<PlayLevelRelation> PlayLevelRelations => new(this._realm);
     private RealmDbSet<UniquePlayLevelRelation> UniquePlayLevelRelations => new(this._realm);

@@ -70,6 +70,7 @@ public class GameDatabaseProvider : RealmDatabaseProvider<GameDatabaseContext>
         typeof(Token),
         typeof(UserPins),
         typeof(GameProfileComment),
+        typeof(BlockUserRelation),
         typeof(FavouriteUserRelation),
         typeof(DisallowedUser),
         typeof(GameNotification),

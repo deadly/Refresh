@@ -36,6 +36,7 @@ public class RoleService : Service
         GameUserRole minimumRole = roleAttrib?.MinimumRole ?? GameUserRole.User;
 
         GameUser? user = (GameUser?)this._authService.AuthenticateToken(context, database)?.User;
+        
         if (user == null) return null; // Let AuthenticationProvider handle 401
         
         // if the user's role is lower than the minimum role for this endpoint, then return unauthorized
@@ -51,7 +52,7 @@ public class RoleService : Service
             this._authService.RemoveTokenFromCache();
             return Unauthorized;
         }
-
+        
         return null;
     }
 

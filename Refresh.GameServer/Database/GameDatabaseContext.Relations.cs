@@ -73,6 +73,10 @@ public partial class GameDatabaseContext // Relations
         .FirstOrDefault(r => r.UserToFavourite == userToFavourite && r.UserFavouriting == userFavouriting) != null;
 
     [Pure]
+    private bool IsUserBlockedByUser(GameUser userToBlock, GameUser userBlocking) => this.BlockUserRelations
+        .FirstOrDefault(r => r.UserToBlock == userToBlock && r.UserBlocking == userBlocking) != null;
+
+    [Pure]
     public bool AreUsersMutual(GameUser user1, GameUser user2) =>
         this.IsUserFavouritedByUser(user1, user2) &&
         this.IsUserFavouritedByUser(user2, user1);
@@ -91,6 +95,24 @@ public partial class GameDatabaseContext // Relations
         .Select(r => r.UserToFavourite)
         .Skip(skip)
         .Take(count);
+
+    [Pure]
+    public bool BlockRelationExists(GameUser user, GameUser targetUser)
+    {
+        bool isBlocked = this.BlockUserRelations.Any(r => 
+            (r.UserBlocking == user && r.UserToBlock == targetUser) ||
+            (r.UserBlocking == targetUser && r.UserToBlock == user));
+
+        return isBlocked;
+    }
+
+    [Pure]
+    public IEnumerable<GameUser> GetUsersBlockedByUser(GameUser user, int count, int skip) => this.BlockUserRelations
+        .Where(r => r.UserBlocking == user)
+        .AsEnumerable()
+        .Select(r => r.UserToBlock)
+        .Skip(skip)
+        .Take(count);
     
     public int GetTotalUsersFavouritedByUser(GameUser user)
         => this.FavouriteUserRelations
@@ -99,6 +121,55 @@ public partial class GameDatabaseContext // Relations
     public int GetTotalUsersFavouritingUser(GameUser user)
         => this.FavouriteUserRelations
             .Count(r => r.UserToFavourite == user);
+
+    
+    public bool BlockUser(GameUser userToBlock, GameUser userBlocking)
+    {
+          if (userBlocking.Equals(userToBlock)) return false;  
+          if (this.IsUserBlockedByUser(userToBlock, userBlocking)) return false;
+          
+          this.UnfavouriteUser(userToBlock, userBlocking);
+          this.UnfavouriteUser(userBlocking, userToBlock);
+
+          IEnumerable<GameLevel> levelsByUserToBlock = GetLevelsFavouritedByUser(userBlocking, 
+                  GetTotalLevelsFavouritedByUser(userBlocking), 0, new LevelFilterSettings(TokenGame.LittleBigPlanet2), userBlocking)
+            .Items
+            .Where(r => r.Publisher.Username == userToBlock.Username);
+
+          foreach (GameLevel level in levelsByUserToBlock)
+          {
+              this.UnfavouriteLevel(level, userBlocking);
+          }
+
+          BlockUserRelation relation = new()
+          {
+              UserToBlock = userToBlock,
+              UserBlocking = userBlocking,
+          };
+
+          this.Write(() => this.BlockUserRelations.Add(relation));
+
+          // TODO: event for the BlockUserRelations
+          
+          this.AddNotification("User Blocked", $"{userToBlock} has been blocked!", userBlocking);
+
+          return true;
+
+    }
+
+    public bool UnblockUser(GameUser userToBlock, GameUser userBlocking)
+    {
+        BlockUserRelation? relation = this.BlockUserRelations
+            .FirstOrDefault(r => r.UserToBlock == userToBlock && r.UserBlocking == userBlocking);
+
+        if (relation == null) return false;
+
+        this.AddNotification("User Unblocked", $"{userToBlock} has been unblocked!", userBlocking);
+
+        this.Write(() => this.BlockUserRelations.Remove(relation));
+
+        return true;
+    }
 
     public bool FavouriteUser(GameUser userToFavourite, GameUser userFavouriting)
     {

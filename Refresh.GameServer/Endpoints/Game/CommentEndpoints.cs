@@ -29,6 +29,11 @@ public class CommentEndpoints : EndpointGroup
 
         GameUser? profile = database.GetUserByUsername(username);
         if (profile == null) return NotFound;
+
+        if (database.BlockRelationExists(user, profile))
+        {
+            return Forbidden;
+        }
         
         // TODO: include a check for if the user wants to receive these types of notifications 
         if (!profile.Equals(user)) 
@@ -49,6 +54,11 @@ public class CommentEndpoints : EndpointGroup
         if (profile == null) return null;
         
         (int skip, int count) = context.GetPageData();
+
+        if (database.BlockRelationExists(user, profile))
+        {
+            return null;
+        }
 
         return new SerializedCommentList(SerializedComment.FromOldList(database.GetProfileComments(profile, count, skip), dataContext));
     }

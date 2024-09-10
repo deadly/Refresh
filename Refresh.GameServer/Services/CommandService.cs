@@ -143,6 +143,41 @@ public class CommandService : EndpointService
                 
                 break;
             }
+            case "block":
+            {
+                
+                if (command.Arguments == null)
+                {
+                    throw new Exception("User not provided for block command");
+                }
+
+                GameUser userToBlock = database.GetUserByUsername(command.Arguments.ToString());
+
+                if (userToBlock != null)
+                {
+                    database.BlockUser(userToBlock, user);
+                }
+
+                break;
+            }
+            case "unblock":
+            {
+
+                if (command.Arguments == null)
+                {
+                    throw new Exception("User not provided for unblock command");
+                }
+
+                GameUser userToBlock = database.GetUserByUsername(command.Arguments.ToString());
+
+
+                if (userToBlock != null)
+                {
+                    database.UnblockUser(userToBlock, user);
+                }
+                
+                break;
+            }
             case "beta":
             {
                 database.ForceUserTokenGame(token, TokenGame.BetaBuild);
