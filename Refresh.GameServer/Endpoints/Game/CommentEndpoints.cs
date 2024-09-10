@@ -98,6 +98,11 @@ public class CommentEndpoints : EndpointGroup
         GameLevel? level = database.GetLevelByIdAndType(slotType, id);
         if (level == null) return NotFound;
 
+        if (database.BlockRelationExists(user, level.Publisher))
+        {
+            return Forbidden;
+        }
+
         if (!level.Publisher.Equals(user)) 
         {
             database.AddNotification("New comment", $"{user.Username} left a comment on your level: '{level.Title}!'", level.Publisher);
@@ -117,6 +122,11 @@ public class CommentEndpoints : EndpointGroup
         if (level == null) return null;
 
         (int skip, int count) = context.GetPageData();
+
+         if (database.BlockRelationExists(user, level.Publisher))
+        {
+            return null;
+        }
 
         return new SerializedCommentList(SerializedComment.FromOldList(database.GetLevelComments(level, count, skip), dataContext));
     }

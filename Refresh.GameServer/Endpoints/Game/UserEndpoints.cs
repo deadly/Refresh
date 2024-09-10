@@ -22,8 +22,26 @@ public class UserEndpoints : EndpointGroup
     [MinimumRole(GameUserRole.Restricted)]
     public GameUserResponse? GetUser(RequestContext context, GameDatabaseContext database, string name, Token token,
         IDataStore dataStore, DataContext dataContext) 
-        => GameUserResponse.FromOld(database.GetUserByUsername(name), dataContext);
+    {
+        GameUser user = database.GetUserByUsername(name);
 
+        GameUserResponse response = GameUserResponse.FromOld(user, dataContext);
+        
+        if (database.BlockRelationExists(user, dataContext.User))
+        {
+            Console.WriteLine("found block relation, trying to return null");
+            response.Description = null;
+            response.CommentsEnabled = false;
+            response.PhotosByMeCount = 0;
+            response.PhotosWithMeCount = 0;
+            response.ReviewCount = 0;
+            response.FavouriteLevelCount = 0;
+            response.FavouriteUserCount = 0;
+            response.QueuedLevelCount = 0;
+        }
+
+        return response;
+    } 
     [GameEndpoint("users", HttpMethods.Get, ContentType.Xml)]
     [MinimumRole(GameUserRole.Restricted)]
     public SerializedUserList GetMultipleUsers(RequestContext context, GameDatabaseContext database, Token token,

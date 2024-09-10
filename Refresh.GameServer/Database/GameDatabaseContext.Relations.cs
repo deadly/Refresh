@@ -174,6 +174,7 @@ public partial class GameDatabaseContext // Relations
     public bool FavouriteUser(GameUser userToFavourite, GameUser userFavouriting)
     {
         if (this.IsUserFavouritedByUser(userToFavourite, userFavouriting)) return false;
+        if (this.BlockRelationExists(userToFavourite, userFavouriting)) return false;
         
         FavouriteUserRelation relation = new()
         {

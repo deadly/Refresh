@@ -80,6 +80,7 @@ public class PhotoEndpoints : EndpointGroup
         IEnumerable<SerializedPhoto> photos = photoGetter.Invoke(user, count, skip).Items
             .Select(photo => SerializedPhoto.FromGamePhoto(photo, dataContext));
 
+
         return new Response(new SerializedPhotoList(photos), ContentType.Xml);
     }
 
